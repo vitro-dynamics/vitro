@@ -1,0 +1,33 @@
+name: Release Promotion
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+          fetch-depth: 0
+          # GITHUB_TOKEN with contents:write is sufficient when staging/production
+          # branches are unprotected (they're deploy targets, not dev branches).
+
+      - name: Determine target branch
+        id: target
+        run: |
+          if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
+            echo "branch=staging" >> "$GITHUB_OUTPUT"
+          else
+            echo "branch=production" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Promote to ${{ steps.target.outputs.branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git push origin HEAD:${{ steps.target.outputs.branch }} --force-with-lease

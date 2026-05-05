@@ -1,0 +1,44 @@
+{
+	"name": "@app/api",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "portless",
+		"dev:app": "nitro dev",
+		"build": "nitro build",
+		"typecheck": "tsc --noEmit",
+		"lint": "biome lint src server"
+	},
+	"dependencies": {
+		"@app/db": "workspace:*",
+		"@prisma/adapter-pg": "catalog:",
+		"@prisma/client": "catalog:",
+		"@app/logger": "workspace:*",
+		"@trpc/server": "catalog:",
+		"arktype": "catalog:",
+		"better-auth": "catalog:",
+		"cors": "catalog:",
+		"ioredis": "catalog:",
+		"nitropack": "catalog:",
+		"nodemailer": "catalog:",
+		"resend": "catalog:",
+		"stripe": "catalog:",
+		"web-push": "catalog:",
+		"@aws-sdk/client-s3": "catalog:",
+		"@aws-sdk/s3-request-presigner": "catalog:",
+		"date-fns": "catalog:",
+		"date-fns-tz": "catalog:"
+	},
+	"portless": {
+		"name": "api.vitro",
+		"script": "dev:app"
+	},
+	"devDependencies": {
+		"@app/tsconfig": "workspace:*",
+		"@types/cors": "catalog:",
+		"@types/node": "^22",
+		"@types/nodemailer": "catalog:",
+		"@types/web-push": "catalog:",
+		"typescript": "catalog:"
+	}
+}

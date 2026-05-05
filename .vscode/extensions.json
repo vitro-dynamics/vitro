@@ -1,0 +1,9 @@
+{
+	"recommendations": [
+		"biomejs.biome",
+		"prisma.prisma",
+		"astro-build.astro-vscode",
+		"bradlc.vscode-tailwindcss",
+		"ms-vscode.vscode-typescript-next"
+	]
+}

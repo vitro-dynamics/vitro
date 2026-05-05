@@ -1,0 +1,40 @@
+{
+	"files.exclude": {
+		"**/node_modules": true,
+		"**/.turbo": true,
+		"**/.output": true,
+		"**/.astro": true,
+		"**/dist": true,
+		"**/build": true,
+		"packages/db/generated": true
+	},
+	"search.exclude": {
+		"**/node_modules": true,
+		"**/.turbo": true,
+		"**/.output": true,
+		"**/.astro": true,
+		"**/dist": true,
+		"**/build": true,
+		"packages/db/generated": true,
+		"pnpm-lock.yaml": true
+	},
+	"editor.defaultFormatter": "biomejs.biome",
+	"editor.formatOnSave": true,
+	"[typescript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[javascriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"typescript.enablePromptUseWorkspaceTsdk": true
+}

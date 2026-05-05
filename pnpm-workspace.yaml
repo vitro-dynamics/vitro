@@ -1,3 +1,94 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "tooling/*"
+
+catalog:
+  # React
+  react: "19.0.0"
+  react-dom: "19.0.0"
+  "@types/react": "^19"
+  "@types/react-dom": "^19"
+
+  # TypeScript / tooling
+  typescript: "^5"
+  "@biomejs/biome": "^2.4.14"
+  turbo: "^2.9.9"
+  # Note: @app/biome was removed — root biome.json holds the single config
+
+  # tRPC
+  "@trpc/server": "^11"
+  "@trpc/client": "^11"
+  "@trpc/tanstack-react-query": "^11"
+
+  # TanStack
+  "@tanstack/react-query": "^5"
+  "@tanstack/react-router": "^1"
+  "@tanstack/router-plugin": "^1"
+
+  # Auth + validation
+  better-auth: "1.6.9"
+  arktype: "^2"
+
+  # Tailwind
+  tailwindcss: "^4"
+  "@tailwindcss/vite": "^4"
+  "@tailwindcss/postcss": "^4"
+
+  # API + infra
+  nitropack: "2.13.4"
+  ioredis: "^5"
+  consola: "^3"
+  resend: "^4"
+  stripe: "^17"
+  cors: "^2"
+  "@types/cors": "^2"
+  nodemailer: "^6"
+  "@types/nodemailer": "^6"
+  "web-push": "^3.6.7"
+  "@types/web-push": "^3.6.4"
+  # AWS SDK (Railway Buckets / S3-compatible storage)
+  "@aws-sdk/client-s3": "^3"
+  "@aws-sdk/s3-request-presigner": "^3"
+  # Date utilities (UTC-safe, timezone-aware)
+  "date-fns": "^4"
+  "date-fns-tz": "^3"
+
+  # Database
+  prisma: "^7"
+  "@prisma/client": "^7"
+  "@prisma/adapter-pg": "^7"
+  dotenv: "^16"
+
+  # Shared UI deps
+  "class-variance-authority": "^0.7"
+  clsx: "^2"
+  "tailwind-merge": "^3"
+  "lucide-react": "^0.511"
+  "radix-ui": "^1"
+  "@radix-ui/react-switch": "^1"
+  "react-hook-form": "^7"
+  "@hookform/resolvers": "^5"
+  zod: "^4"
+
+  # Vite
+  vite: "^6"
+  "@vitejs/plugin-react": "^4"
+
+  # Astro
+  astro: "^5"
+  "@astrojs/react": "^4"
+
+  # Playwright
+  "@playwright/test": "^1"
+
+  # Expo / React Native
+  expo: "~55.0.0"
+  "expo-haptics": "~14.0.1"
+  "expo-router": "~5.0.0"
+  "expo-status-bar": "~2.2.0"
+  react-native: "0.79.0"
+  "react-native-safe-area-context": "^5.0.0"
+  "react-native-screens": "~4.10.0"
+  "@expo/vector-icons": "^14.0.0"
+  "@babel/core": "^7.25.2"

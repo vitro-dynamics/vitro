@@ -1,0 +1,12 @@
+{
+	"$schema": "https://railway.com/railway.schema.json",
+	"build": {
+		"builder": "DOCKERFILE",
+		"dockerfilePath": "apps/web/Dockerfile",
+		"watchPatterns": ["apps/web/**", "packages/ui/**", "packages/trpc/**", "pnpm-lock.yaml"]
+	},
+	"deploy": {
+		"startCommand": "caddy run --config /etc/caddy/Caddyfile",
+		"restartPolicyType": "ON_FAILURE"
+	}
+}

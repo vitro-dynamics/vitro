@@ -1,0 +1,49 @@
+name: E2E
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+  deployments: read
+  pull-requests: write
+
+jobs:
+  e2e:
+    # Only run when Railway (or any provider) successfully deploys to a URL.
+    # The second check filters out deployments that don't expose a URL
+    # (e.g. GitHub Pages internal deployments, preview-only builds).
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment_status.environment_url != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event.deployment.sha }}" }
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - name: Wait for app to be ready
+        run: |
+          URL="${{ github.event.deployment_status.environment_url }}"
+          for i in {1..60}; do
+            if curl -fsS "$URL" > /dev/null; then exit 0; fi
+            sleep 5
+          done
+          echo "App did not become ready in time" >&2
+          exit 1
+
+      - run: pnpm --filter @app/e2e test
+        env:
+          BASE_URL: ${{ github.event.deployment_status.environment_url }}
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.event.deployment.environment }}-${{ github.run_id }}
+          path: tooling/e2e/playwright-report/
+          retention-days: 14

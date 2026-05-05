@@ -1,0 +1,31 @@
+{
+	"name": "@app/marketing",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "portless",
+		"dev:app": "astro dev",
+		"build": "astro build",
+		"typecheck": "astro check",
+		"lint": "biome lint src"
+	},
+	"dependencies": {
+		"@app/ui": "workspace:*",
+		"@astrojs/react": "^4",
+		"react": "^19",
+		"react-dom": "^19"
+	},
+	"portless": {
+		"name": "vitro",
+		"script": "dev:app"
+	},
+	"devDependencies": {
+		"@app/tsconfig": "workspace:*",
+		"@tailwindcss/vite": "^4",
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"astro": "^5",
+		"tailwindcss": "^4",
+		"typescript": "^5"
+	}
+}

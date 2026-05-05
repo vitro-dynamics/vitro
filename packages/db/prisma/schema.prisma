@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/client"
+  runtime  = "nodejs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// === Better Auth required models (run `npx @better-auth/cli generate` to refresh) ===
+
+model User {
+  id            String                  @id
+  email         String                  @unique
+  emailVerified Boolean                 @default(false)
+  name          String?
+  image         String?
+  phone         String?
+  timezone      String?                 // IANA tz string e.g. "America/New_York"
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  preferences       NotificationPreference?
+  connectedAccount   ConnectedAccount?
+  pushSubscriptions  PushSubscription[]
+  smsConsents        SmsConsent[]
+  images             Image[]
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// === App models ===
+
+model ConnectedAccount {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  stripeAccountId String   @unique
+  chargesEnabled  Boolean  @default(false)
+  payoutsEnabled  Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NotificationPreference {
+  userId     String  @id
+  emailOptIn Boolean @default(true)
+  smsOptIn   Boolean @default(false)
+  pushOptIn  Boolean @default(true)
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  keys      Json // { p256dh: string, auth: string }
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// === Compliance models ===
+
+model SuppressedEmail {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  reason       String // "hard_bounce" | "complaint"
+  suppressedAt DateTime @default(now())
+}
+
+model SmsConsent {
+  id           String   @id @default(cuid())
+  userId       String
+  phoneNumber  String
+  consentedAt  DateTime @default(now())
+  consentIp    String?
+  consentText  String // exact disclosure shown to user
+  termsVersion String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model SmsOptOut {
+  phoneNumber String   @id // E.164; authoritative regardless of userId
+  reason      String // "stop_keyword" | "manual" | "bounced"
+  optedOutAt  DateTime @default(now())
+}
+
+// === Storage models ===
+
+model Image {
+  id          String      @id // the S3 object key
+  userId      String
+  contentType String
+  status      ImageStatus @default(pending)
+  uploadedAt  DateTime?
+  createdAt   DateTime    @default(now())
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status, createdAt]) // for orphan cleanup
+}
+
+enum ImageStatus {
+  pending
+  uploaded
+  failed
+}
+
+model WebhookEvent {
+  id          String    @id // provider event id, used for idempotency
+  source      String // "stripe", "resend", etc.
+  type        String
+  payload     Json
+  processedAt DateTime?
+  receivedAt  DateTime  @default(now())
+
+  @@index([source, type])
+}

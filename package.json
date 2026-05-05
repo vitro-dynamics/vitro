@@ -1,23 +1,35 @@
 {
-  "name": "planna",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "lint": "turbo lint",
-    "check": "biome check --write .",
-    "format": "biome format --write .",
-    "typecheck": "turbo typecheck",
-    "clean": "turbo clean && rm -rf node_modules"
-  },
-  "engines": {
-    "node": ">=20",
-    "pnpm": ">=10"
-  },
-  "packageManager": "pnpm@10.15.0",
-  "devDependencies": {
-    "@biomejs/biome": "^2.4.14",
-    "turbo": "^2.9.9"
-  }
+	"name": "vitro",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "turbo dev --filter=!@app/mobile",
+		"dev:mobile": "pnpm --filter @app/mobile dev",
+		"dev:up": "docker compose up -d --wait && docker compose logs && (portless proxy stop 2>/dev/null || true) && portless proxy start --https && portless alias mailpit 8025 --force && pnpm install && pnpm db:generate && node -e \"console.log('\\n  API       https://api.vitro.localhost\\n  Web       https://app.vitro.localhost\\n  Marketing https://vitro.localhost\\n  Mailpit   https://mailpit.localhost\\n')\" && pnpm dev",
+		"dev:down": "docker compose down",
+		"dev:clean": "docker compose down -v",
+		"dev:logs": "docker compose logs -f",
+		"dev:reset": "pnpm dev:clean && pnpm dev:up && pnpm db:migrate",
+		"build": "turbo build",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write .",
+		"typecheck": "turbo typecheck",
+		"db:generate": "pnpm --filter @app/db generate",
+		"db:migrate": "pnpm --filter @app/db migrate",
+		"db:migrate:deploy": "pnpm --filter @app/db migrate:deploy",
+		"db:studio": "pnpm --filter @app/db studio",
+		"infra:init": "bash tooling/infra/init.sh",
+		"clean": "turbo clean && rm -rf node_modules"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"packageManager": "pnpm@10.15.0",
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.14",
+		"turbo": "^2.9.9",
+		"typescript": "^5"
+	}
 }

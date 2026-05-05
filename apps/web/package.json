@@ -1,0 +1,39 @@
+{
+	"name": "@app/web",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "portless",
+		"dev:app": "vite",
+		"build": "tsc -b && vite build",
+		"typecheck": "tsc --noEmit",
+		"lint": "biome lint src"
+	},
+	"dependencies": {
+		"@app/trpc": "workspace:*",
+		"@app/ui": "workspace:*",
+		"@tanstack/react-query": "catalog:",
+		"@tanstack/react-router": "catalog:",
+		"@trpc/client": "catalog:",
+		"@trpc/tanstack-react-query": "catalog:",
+		"better-auth": "catalog:",
+		"date-fns": "catalog:",
+		"react": "catalog:",
+		"react-dom": "catalog:"
+	},
+	"portless": {
+		"name": "app.vitro",
+		"script": "dev:app"
+	},
+	"devDependencies": {
+		"@app/tsconfig": "workspace:*",
+		"@tailwindcss/vite": "catalog:",
+		"@tanstack/router-plugin": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"@vitejs/plugin-react": "catalog:",
+		"tailwindcss": "catalog:",
+		"typescript": "catalog:",
+		"vite": "catalog:"
+	}
+}

@@ -1,0 +1,7 @@
+{
+	"apps": {
+		"apps/api": { "name": "api.vitro", "script": "dev:app" },
+		"apps/web": { "name": "app.vitro", "script": "dev:app" },
+		"apps/marketing": { "name": "vitro", "script": "dev:app" }
+	}
+}

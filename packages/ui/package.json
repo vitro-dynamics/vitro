@@ -1,0 +1,29 @@
+{
+	"name": "@app/ui",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./styles/theme.css": "./src/styles/theme.css",
+		"./components/ui/*": "./src/components/ui/*.tsx",
+		"./screens/*": "./src/screens/*.tsx",
+		"./lib/utils": "./src/lib/utils.ts"
+	},
+	"dependencies": {
+		"@hookform/resolvers": "catalog:",
+		"class-variance-authority": "catalog:",
+		"clsx": "catalog:",
+		"lucide-react": "catalog:",
+		"@radix-ui/react-switch": "catalog:",
+		"radix-ui": "catalog:",
+		"react-hook-form": "catalog:",
+		"tailwind-merge": "catalog:",
+		"zod": "catalog:"
+	},
+	"peerDependencies": {
+		"react": "catalog:",
+		"react-dom": "catalog:"
+	},
+	"devDependencies": {
+		"@app/tsconfig": "workspace:*"
+	}
+}

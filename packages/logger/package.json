@@ -1,0 +1,13 @@
+{
+	"name": "@app/logger",
+	"private": true,
+	"type": "module",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"dependencies": {
+		"consola": "^3"
+	},
+	"devDependencies": {
+		"@app/tsconfig": "workspace:*"
+	}
+}

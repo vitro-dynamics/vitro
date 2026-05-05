@@ -7,6 +7,7 @@ node_modules
 # Build outputs
 dist
 .output
+.nitro
 build
 .next
 
@@ -23,6 +24,14 @@ pnpm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated
+packages/db/generated/
+
+# Local infra tokens (never commit)
+tooling/infra/.env
+.astro/
+routeTree.gen.ts
 
 # Editor
 .vscode/*

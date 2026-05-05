@@ -1,0 +1,25 @@
+{
+	"expo": {
+		"name": "vitro",
+		"slug": "vitro",
+		"version": "1.0.0",
+		"orientation": "portrait",
+		"scheme": "vitro",
+		"userInterfaceStyle": "automatic",
+		"newArchEnabled": true,
+		"ios": {
+			"supportsTablet": true,
+			"bundleIdentifier": "com.vitro.app"
+		},
+		"android": {
+			"adaptiveIcon": {
+				"backgroundColor": "#ffffff"
+			},
+			"package": "com.vitro.app"
+		},
+		"plugins": ["expo-router"],
+		"experiments": {
+			"typedRoutes": true
+		}
+	}
+}
