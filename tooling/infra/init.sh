@@ -130,7 +130,7 @@ for env in "${ENVIRONMENTS[@]}"; do
     --environment "$env" \
     --set 'DATABASE_URL=${{postgres.DATABASE_URL}}' \
     --set 'VALKEY_URL=${{valkey.VALKEY_URL}}' \
-    --set 'BETTER_AUTH_URL=https://${{api.RAILWAY_PRIVATE_DOMAIN}}' \
+    --set 'BETTER_AUTH_URL=https://${{api.RAILWAY_PUBLIC_DOMAIN}}' \
     --set 'TRUSTED_ORIGINS=https://${{web.RAILWAY_PUBLIC_DOMAIN}}' \
     --set 'BETTER_AUTH_SECRET=${{shared.BETTER_AUTH_SECRET}}' \
     --set 'NODE_ENV=${{shared.NODE_ENV}}' \
@@ -242,7 +242,7 @@ Manual steps in the Railway dashboard:
    Auto-wired on api service by this script:
      DATABASE_URL      ${{postgres.DATABASE_URL}}           private network
      VALKEY_URL        ${{valkey.VALKEY_URL}}               private network
-     BETTER_AUTH_URL   https://${{api.RAILWAY_PRIVATE_DOMAIN}}  private network
+     BETTER_AUTH_URL   https://${{api.RAILWAY_PUBLIC_DOMAIN}}   cross-service ref
      TRUSTED_ORIGINS   https://${{web.RAILWAY_PUBLIC_DOMAIN}}  cross-service ref
      BETTER_AUTH_SECRET  REPLACE_ME  ← fill this in per-environment
 
