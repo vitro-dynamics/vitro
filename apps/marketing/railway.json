@@ -3,7 +3,7 @@
 	"build": {
 		"builder": "DOCKERFILE",
 		"dockerfilePath": "apps/marketing/Dockerfile",
-		"watchPatterns": ["apps/marketing/**", "packages/ui/**", "pnpm-lock.yaml"]
+		"watchPatterns": ["apps/marketing/**", "packages/ui/**", "pnpm-lock.yaml", "turbo.json"]
 	},
 	"deploy": {
 		"startCommand": "caddy run --config /etc/caddy/Caddyfile",

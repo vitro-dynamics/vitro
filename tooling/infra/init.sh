@@ -73,7 +73,7 @@ done
 # We add them once here; per-environment variable references are wired below.
 
 # ── Postgres ──────────────────────────────────────────────────────────────────
-if railway variables --service Postgres >/dev/null 2>&1; then
+if railway variables --service postgres >/dev/null 2>&1; then
   echo "  ✓ Postgres present"
 else
   echo "  + adding Postgres"
@@ -84,18 +84,18 @@ fi
 # ── Valkey ────────────────────────────────────────────────────────────────────
 # 'railway add --database' only supports postgres/mysql/redis/mongo in CLI v4.
 # Valkey must be added via the dashboard: New → Database → Add a Template → Valkey
-if railway variables --service Valkey >/dev/null 2>&1; then
+if railway variables --service valkey >/dev/null 2>&1; then
   echo "  ✓ Valkey present"
 else
   echo "  ! Valkey: add manually via dashboard (New → Database → Add a Template → Valkey)"
 fi
 
 # ── Bucket (S3-compatible object storage) ─────────────────────────────────────
-if railway variables --service Bucket >/dev/null 2>&1; then
-  echo "  ✓ Bucket present"
-else
-  echo "  ! Bucket: add manually via dashboard (New → Database → Bucket)"
-fi
+# Bucket is not listable by service name via CLI — Railway auto-injects its vars
+# (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_ENDPOINT_URL, AWS_DEFAULT_REGION,
+# AWS_S3_BUCKET_NAME) directly into connected services.
+# Add via dashboard: New → Database → Bucket
+echo "  ! Bucket: add manually via dashboard (New → Database → Bucket) if not already present"
 
 # ── App service shells ────────────────────────────────────────────────────────
 for svc in "${SERVICES[@]}"; do
@@ -124,26 +124,30 @@ for env in "${ENVIRONMENTS[@]}"; do
   echo ""
   echo "→ [$env] Wiring variable references..."
 
+  # ── api: service-specific private-network + cross-service refs ──────────────
+  # Only vars that differ per-service or use ${{service.VAR}} references go here.
+  # Third-party credentials (RESEND_*, STRIPE_*, BIRD_*, VAPID_*) and NODE_ENV /
+  # LOG_LEVEL belong in environment Shared Variables (set via dashboard).
   railway variables \
     --service api \
     --environment "$env" \
-    --set 'DATABASE_URL=${{Postgres.DATABASE_URL}}' \
-    --set 'VALKEY_URL=${{Valkey.VALKEY_URL}}' \
-    --set 'AWS_ACCESS_KEY_ID=${{Bucket.AWS_ACCESS_KEY_ID}}' \
-    --set 'AWS_SECRET_ACCESS_KEY=${{Bucket.AWS_SECRET_ACCESS_KEY}}' \
-    --set 'AWS_S3_ENDPOINT=${{Bucket.AWS_S3_ENDPOINT}}' \
-    --set 'AWS_REGION=${{Bucket.AWS_REGION}}' \
-    --set 'AWS_S3_BUCKET=${{Bucket.AWS_S3_BUCKET}}' \
+    --set 'DATABASE_URL=${{postgres.DATABASE_URL}}' \
+    --set 'VALKEY_URL=${{valkey.VALKEY_URL}}' \
     --set 'BETTER_AUTH_URL=https://${{api.RAILWAY_PUBLIC_DOMAIN}}' \
     --set 'TRUSTED_ORIGINS=https://${{web.RAILWAY_PUBLIC_DOMAIN}}' \
-    2>/dev/null && echo "    ✓ API vars wired" \
+    --set 'BETTER_AUTH_SECRET=REPLACE_ME' \
+    2>/dev/null && echo "    ✓ API service vars wired" \
     || echo "    ! Could not set API vars via CLI — see manual steps below"
 
+  # Note: Bucket auto-injects AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
+  # AWS_ENDPOINT_URL, AWS_DEFAULT_REGION, AWS_S3_BUCKET_NAME into all services.
+
+  # ── web: build-time VITE_API_URL ─────────────────────────────────────────────
   railway variables \
     --service web \
     --environment "$env" \
     --set 'VITE_API_URL=https://${{api.RAILWAY_PUBLIC_DOMAIN}}' \
-    2>/dev/null && echo "    ✓ web vars wired" \
+    2>/dev/null && echo "    ✓ web service vars wired" \
     || echo "    ! Could not set web vars via CLI — see manual steps below"
 done
 
@@ -198,35 +202,47 @@ Manual steps in the Railway dashboard:
    Require review: recommended
 
 5. ENVIRONMENT-LEVEL SHARED VARIABLES
-   In Railway: environment → Settings → Shared Variables
-   These are visible to ALL services in that environment.
-   Set them once per environment, not per service.
+   Railway dashboard: environment → Settings → Shared Variables
+   Visible to ALL services. The Railway CLI cannot set these — use the dashboard.
 
-   All environments (same value):
-     NODE_ENV            development | production
-     LOG_LEVEL           debug | info
-     RESEND_API_KEY      re_...  (same key works across dev/staging)
-     RESEND_FROM_EMAIL   notifications@yourdomain.com
+   Third-party credentials (same across services, differ per environment):
+     NODE_ENV              development  (dev)  |  production  (staging/prod)
+     LOG_LEVEL             debug        (dev)  |  info        (staging/prod)
+     RESEND_API_KEY        re_...
+     RESEND_FROM_EMAIL     notifications@yourdomain.com
+     STRIPE_SECRET_KEY     sk_test_... (dev+staging) | sk_live_... (production)
+     STRIPE_WEBHOOK_SECRET whsec_...
+     STRIPE_CONNECT_CLIENT_ID  ca_...
+     BIRD_ACCESS_KEY       (when SMS live)
+     BIRD_WORKSPACE_ID     (when SMS live)
+     BIRD_SMS_CHANNEL_ID   (when SMS live)
+     BIRD_WEBHOOK_SECRET   (when SMS live)
+     VAPID_PUBLIC_KEY      (when push live)
+     VAPID_PRIVATE_KEY     (when push live)
+     VAPID_SUBJECT         (when push live)
+     RESEND_WEBHOOK_SECRET (when bounce handling live)
 
-   Per-environment (different values):
-     BETTER_AUTH_SECRET  openssl rand -hex 32  (MUST be unique per env)
-     STRIPE_SECRET_KEY   sk_test_... (dev+staging) | sk_live_... (production)
-
-   When features are live, also add as shared vars:
-     VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT
-     BIRD_ACCESS_KEY / BIRD_WORKSPACE_ID / BIRD_SMS_CHANNEL_ID
-     STRIPE_WEBHOOK_SECRET / STRIPE_CONNECT_CLIENT_ID
+   NOTE: if you previously set any of these on a specific service, remove them
+   from the service — service-level vars shadow shared vars.
 
 6. VARIABLE SCOPES SUMMARY
 
-   Auto-wired by this script (no manual action needed):
-     PRIVATE NETWORK   DATABASE_URL, VALKEY_URL, AWS_*
-                       └ resolves to *.railway.internal, container-only
-     CROSS-SERVICE     BETTER_AUTH_URL, TRUSTED_ORIGINS, VITE_API_URL
-                       └ resolves per-env via ${{service.RAILWAY_PUBLIC_DOMAIN}}
+   Auto-wired on api service by this script:
+     DATABASE_URL      ${{postgres.DATABASE_URL}}           private network
+     VALKEY_URL        ${{valkey.VALKEY_URL}}               private network
+     BETTER_AUTH_URL   https://${{api.RAILWAY_PUBLIC_DOMAIN}}  cross-service ref
+     TRUSTED_ORIGINS   https://${{web.RAILWAY_PUBLIC_DOMAIN}}  cross-service ref
+     BETTER_AUTH_SECRET  REPLACE_ME  ← fill this in per-environment
 
-   Set manually in Railway (environment → Shared Variables):
-     NODE_ENV, LOG_LEVEL, RESEND_*, STRIPE_*, BIRD_*, VAPID_*, BETTER_AUTH_SECRET
+   Auto-wired on web service by this script:
+     VITE_API_URL      https://${{api.RAILWAY_PUBLIC_DOMAIN}}  cross-service ref
+
+   Auto-injected by Bucket (no action needed):
+     AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+     AWS_ENDPOINT_URL, AWS_DEFAULT_REGION, AWS_S3_BUCKET_NAME
+
+   Set via dashboard → environment → Shared Variables (CLI cannot set these):
+     NODE_ENV, LOG_LEVEL, RESEND_*, STRIPE_*, BIRD_*, VAPID_*
 
    GitHub Actions secrets: none required.
      release.yml uses the built-in GITHUB_TOKEN (permissions: contents: write).

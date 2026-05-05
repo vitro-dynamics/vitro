@@ -18,12 +18,12 @@ const envType = type({
 	"RESEND_WEBHOOK_SECRET?": "string",
 	// SMS compliance
 	"BIRD_WEBHOOK_SECRET?": "string",
-	// Object storage (Railway Buckets or S3-compatible)
+	// Object storage — Railway Bucket injects these automatically
 	"AWS_ACCESS_KEY_ID?": "string",
 	"AWS_SECRET_ACCESS_KEY?": "string",
-	"AWS_S3_ENDPOINT?": "string",
-	"AWS_REGION?": "string",
-	"AWS_S3_BUCKET?": "string",
+	"AWS_ENDPOINT_URL?": "string", // ${{bucket.AWS_ENDPOINT_URL}}
+	"AWS_DEFAULT_REGION?": "string", // ${{bucket.AWS_DEFAULT_REGION}}
+	"AWS_S3_BUCKET_NAME?": "string", // ${{bucket.AWS_S3_BUCKET_NAME}}
 });
 
 const result = envType(process.env);

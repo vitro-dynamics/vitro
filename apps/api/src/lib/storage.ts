@@ -5,15 +5,16 @@ let _s3: S3Client | null = null;
 
 export function getS3(): S3Client {
 	if (!_s3) {
-		const { AWS_REGION, AWS_S3_ENDPOINT, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } = process.env;
-		if (!AWS_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+		const { AWS_DEFAULT_REGION, AWS_ENDPOINT_URL, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY } =
+			process.env;
+		if (!AWS_DEFAULT_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
 			throw new Error(
-				"Storage not configured: AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY are required"
+				"Storage not configured: AWS_DEFAULT_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY are required"
 			);
 		}
 		_s3 = new S3Client({
-			region: AWS_REGION,
-			...(AWS_S3_ENDPOINT ? { endpoint: AWS_S3_ENDPOINT } : {}),
+			region: AWS_DEFAULT_REGION,
+			...(AWS_ENDPOINT_URL ? { endpoint: AWS_ENDPOINT_URL } : {}),
 			credentials: {
 				accessKeyId: AWS_ACCESS_KEY_ID,
 				secretAccessKey: AWS_SECRET_ACCESS_KEY,
@@ -24,16 +25,16 @@ export function getS3(): S3Client {
 }
 
 export function getBucket(): string {
-	const bucket = process.env.AWS_S3_BUCKET;
-	if (!bucket) throw new Error("AWS_S3_BUCKET is not configured");
+	const bucket = process.env.AWS_S3_BUCKET_NAME;
+	if (!bucket) throw new Error("AWS_S3_BUCKET_NAME is not configured");
 	return bucket;
 }
 
 export function storageConfigured(): boolean {
 	return !!(
-		process.env.AWS_REGION &&
+		process.env.AWS_DEFAULT_REGION &&
 		process.env.AWS_ACCESS_KEY_ID &&
 		process.env.AWS_SECRET_ACCESS_KEY &&
-		process.env.AWS_S3_BUCKET
+		process.env.AWS_S3_BUCKET_NAME
 	);
 }
