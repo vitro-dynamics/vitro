@@ -28,11 +28,14 @@ Everything you need to obtain and configure before deploying vitro. Work through
   ```bash
   pnpm infra:init
   ```
-  This creates the project, three environments (dev/staging/production), Postgres, Valkey, and service shells.
+  This creates the project, three environments (dev/staging/production), Postgres, and service shells.
+  Variable references (`DATABASE_URL`, `VALKEY_URL`, `AWS_*`, `BETTER_AUTH_URL`, `TRUSTED_ORIGINS`, `VITE_API_URL`) are wired automatically.
 - [ ] Complete the manual steps printed by the script — in the Railway dashboard:
+  - **Add Valkey**: New → Database → Add a Template → Valkey
+  - **Add Bucket**: New → Database → Bucket
   - Connect GitHub repo to each service
   - Set branch tracking: dev → `main`, staging → `staging`, production → `production`
-  - Enable **Wait for CI** on each service with required status checks
+  - Enable **Wait for CI** on PR environments and `dev`; leave disabled on `staging` and `production`
   - Enable **PR Environments** at the project level
 
 ---

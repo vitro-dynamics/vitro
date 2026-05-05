@@ -7,11 +7,8 @@
 #   npm install -g @railway/cli
 #   git remote add origin <your-repo>   # repo must exist on GitHub
 #
-# Authentication (two options):
-#   Option A — interactive (one-time):  railway login
-#   Option B — token file (faster):     cp tooling/infra/.env.example tooling/infra/.env
-#                                        # fill in RAILWAY_TOKEN
-#                                        source tooling/infra/.env
+# Authentication:
+#   railway login
 #
 # Usage:
 #   pnpm infra:init [project-name]      # defaults to current directory name
@@ -43,108 +40,115 @@ fi
 echo "→ Provisioning Railway project: $PROJECT_NAME"
 
 # ---------- project ----------
+# Railway CLI v4 stores the project link in ~/.railway/config.json (keyed by
+# absolute path), NOT in .railway/config.json inside the repo.
 
-if [ ! -f ".railway/config.json" ]; then
-  railway init -n "$PROJECT_NAME"
-else
+_project_linked() {
+  local cfg="$HOME/.railway/config.json"
+  [ -f "$cfg" ] && python3 - <<PY
+import json, sys
+cfg = json.load(open("$cfg"))
+sys.exit(0 if "$(pwd)" in cfg.get("projects", {}) else 1)
+PY
+}
+
+if _project_linked; then
   echo "  ✓ project already linked"
+else
+  railway init -n "$PROJECT_NAME"
 fi
 
 # ---------- environments ----------
+# Railway auto-creates 'production' on new projects. Attempt creation and
+# silently ignore "already exists" errors.
 
-existing_envs=$(railway environment 2>/dev/null || true)
 for env in "${ENVIRONMENTS[@]}"; do
-  if echo "$existing_envs" | grep -q "^${env}$"; then
-    echo "  ✓ environment '$env' exists"
+  railway environment new "$env" 2>/dev/null \
+    && echo "  + created environment '$env'" \
+    || echo "  ✓ environment '$env' already exists"
+done
+
+# ---------- services and databases ----------
+# Services and databases are project-level in Railway (shared across environments).
+# We add them once here; per-environment variable references are wired below.
+
+# ── Postgres ──────────────────────────────────────────────────────────────────
+if railway variables --service Postgres >/dev/null 2>&1; then
+  echo "  ✓ Postgres present"
+else
+  echo "  + adding Postgres"
+  railway add --database postgres 2>/dev/null \
+    || echo "  ! Postgres: add manually via dashboard (New → Database → PostgreSQL)"
+fi
+
+# ── Valkey ────────────────────────────────────────────────────────────────────
+# 'railway add --database' only supports postgres/mysql/redis/mongo in CLI v4.
+# Valkey must be added via the dashboard: New → Database → Add a Template → Valkey
+if railway variables --service Valkey >/dev/null 2>&1; then
+  echo "  ✓ Valkey present"
+else
+  echo "  ! Valkey: add manually via dashboard (New → Database → Add a Template → Valkey)"
+fi
+
+# ── Bucket (S3-compatible object storage) ─────────────────────────────────────
+if railway variables --service Bucket >/dev/null 2>&1; then
+  echo "  ✓ Bucket present"
+else
+  echo "  ! Bucket: add manually via dashboard (New → Database → Bucket)"
+fi
+
+# ── App service shells ────────────────────────────────────────────────────────
+for svc in "${SERVICES[@]}"; do
+  if railway variables --service "$svc" >/dev/null 2>&1; then
+    echo "  ✓ service '$svc' exists"
   else
-    echo "  + creating environment '$env'"
-    railway environment new "$env"
+    echo "  + creating service '$svc'"
+    railway add --service "$svc" 2>/dev/null \
+      || echo "    ! could not auto-create '$svc' — add via dashboard"
   fi
 done
 
-# ---------- per-environment infra and services ----------
+# ---------- wire variable references per environment -------------------------
+# Variable categories:
+#
+# 1. PRIVATE NETWORK refs (${{Service.VAR}}) — resolved by Railway at deploy time,
+#    inside the running container only. Not available during Docker build.
+#
+# 2. CROSS-SERVICE refs (${{service.RAILWAY_PUBLIC_DOMAIN}}) — resolve per-env
+#    automatically; work across dev/staging/production/PR environments.
+#
+# 3. PER-SERVICE SECRETS — set manually per environment in the Railway dashboard
+#    (BETTER_AUTH_SECRET, RESEND_API_KEY, etc.). See the checklist below.
 
 for env in "${ENVIRONMENTS[@]}"; do
   echo ""
-  echo "→ [$env] Provisioning services and databases..."
-  railway environment "$env" >/dev/null
+  echo "→ [$env] Wiring variable references..."
 
-  # ── Postgres ──────────────────────────────────────────────────────────────
-  if railway variables --service Postgres >/dev/null 2>&1; then
-    echo "  ✓ Postgres present"
-  else
-    echo "  + adding Postgres"
-    railway add --database postgres -y
-  fi
+  railway variables \
+    --service api \
+    --environment "$env" \
+    --set 'DATABASE_URL=${{Postgres.DATABASE_URL}}' \
+    --set 'VALKEY_URL=${{Valkey.VALKEY_URL}}' \
+    --set 'AWS_ACCESS_KEY_ID=${{Bucket.AWS_ACCESS_KEY_ID}}' \
+    --set 'AWS_SECRET_ACCESS_KEY=${{Bucket.AWS_SECRET_ACCESS_KEY}}' \
+    --set 'AWS_S3_ENDPOINT=${{Bucket.AWS_S3_ENDPOINT}}' \
+    --set 'AWS_REGION=${{Bucket.AWS_REGION}}' \
+    --set 'AWS_S3_BUCKET=${{Bucket.AWS_S3_BUCKET}}' \
+    --set 'BETTER_AUTH_URL=https://${{api.RAILWAY_PUBLIC_DOMAIN}}' \
+    --set 'TRUSTED_ORIGINS=https://${{web.RAILWAY_PUBLIC_DOMAIN}}' \
+    2>/dev/null && echo "    ✓ API vars wired" \
+    || echo "    ! Could not set API vars via CLI — see manual steps below"
 
-  # ── Valkey ────────────────────────────────────────────────────────────────
-  if railway variables --service Valkey >/dev/null 2>&1; then
-    echo "  ✓ Valkey present"
-  else
-    if railway add --database valkey -y 2>/dev/null; then
-      echo "  + added Valkey"
-    else
-      echo "  ! Valkey: add manually via dashboard (Templates → Valkey)"
-    fi
-  fi
-
-  # ── Bucket (S3-compatible object storage) ─────────────────────────────────
-  if railway variables --service Bucket >/dev/null 2>&1; then
-    echo "  ✓ Bucket present"
-  else
-    if railway add --database bucket -y 2>/dev/null; then
-      echo "  + added Bucket"
-    else
-      echo "  ! Bucket: add manually via dashboard (New → Database → Bucket)"
-    fi
-  fi
-
-  # ── App service shells ────────────────────────────────────────────────────
-  for svc in "${SERVICES[@]}"; do
-    if railway variables --service "$svc" >/dev/null 2>&1; then
-      echo "  ✓ service '$svc' exists"
-    else
-      echo "  + creating service '$svc'"
-      railway add --service "$svc" -y || echo "    ! could not auto-create '$svc' — add via dashboard"
-    fi
-  done
-
-  # ── Wire variable references ───────────────────────────────────────────────
-  # Three categories of variables:
-  #
-  # 1. PRIVATE NETWORK (railway.internal) — set as variable references so each
-  #    environment automatically gets its own database/cache. These use Railway's
-  #    private network; they are NOT resolvable from local dev or during Docker
-  #    build — only inside the running container at deploy time.
-  #
-  # 2. CROSS-SERVICE REFERENCES — ${{service.VAR}} syntax resolves per-environment
-  #    automatically. Works in dev, staging, production, AND PR environments
-  #    without any manual override.
-  #
-  # 3. PER-SERVICE SECRETS — must be set manually per environment
-  #    (BETTER_AUTH_SECRET, RESEND_API_KEY, etc.). Printed in the checklist below.
-
-  echo "  → wiring variable references for API service..."
-  railway variables --service api set \
-    'DATABASE_URL=${{Postgres.DATABASE_URL}}' \
-    'VALKEY_URL=${{Valkey.VALKEY_URL}}' \
-    'AWS_ACCESS_KEY_ID=${{Bucket.AWS_ACCESS_KEY_ID}}' \
-    'AWS_SECRET_ACCESS_KEY=${{Bucket.AWS_SECRET_ACCESS_KEY}}' \
-    'AWS_S3_ENDPOINT=${{Bucket.AWS_S3_ENDPOINT}}' \
-    'AWS_REGION=${{Bucket.AWS_REGION}}' \
-    'AWS_S3_BUCKET=${{Bucket.AWS_S3_BUCKET}}' \
-    'BETTER_AUTH_URL=https://${{api.RAILWAY_PUBLIC_DOMAIN}}' \
-    'TRUSTED_ORIGINS=https://${{web.RAILWAY_PUBLIC_DOMAIN}}' \
-    2>/dev/null && echo "    ✓ API vars wired" || echo "    ! Could not set API vars via CLI — see manual steps below"
-
-  echo "  → wiring variable references for web service..."
-  railway variables --service web set \
-    'VITE_API_URL=https://${{api.RAILWAY_PUBLIC_DOMAIN}}' \
-    2>/dev/null && echo "    ✓ web vars wired" || echo "    ! Could not set web vars via CLI — see manual steps below"
+  railway variables \
+    --service web \
+    --environment "$env" \
+    --set 'VITE_API_URL=https://${{api.RAILWAY_PUBLIC_DOMAIN}}' \
+    2>/dev/null && echo "    ✓ web vars wired" \
+    || echo "    ! Could not set web vars via CLI — see manual steps below"
 done
 
 # Switch back to dev as the default working environment
-railway environment dev >/dev/null
+railway environment dev 2>/dev/null || true
 
 # ---------- manual checklist ----------
 

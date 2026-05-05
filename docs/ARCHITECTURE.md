@@ -506,7 +506,7 @@ pnpm dev:up                               # starts infra + proxy + all apps
 
 ## Initial setup checklist
 
-1. **`pnpm infra:init`** — provisions Railway project, three environments, Postgres + Valkey per env, service shells.
+1. **`pnpm infra:init`** — provisions Railway project, three environments, Postgres, and service shells. Valkey and Bucket must be added manually via the Railway dashboard (Valkey: New → Database → Add a Template → Valkey; Bucket: New → Database → Bucket). Variable references for both are wired automatically by the script.
 2. **GitHub + branches (dashboard)** — connect repo, set branch tracking, enable Wait for CI, enable PR Environments.
 3. **Secrets per env** — `BETTER_AUTH_SECRET` (unique per env), `BETTER_AUTH_URL`, `TRUSTED_ORIGINS`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `VITE_API_URL` (web service).
 4. **DNS** — CNAME records for `example.com`, `app.example.com`, `api.example.com`.
