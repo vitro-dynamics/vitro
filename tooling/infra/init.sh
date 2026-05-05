@@ -124,10 +124,7 @@ for env in "${ENVIRONMENTS[@]}"; do
   echo ""
   echo "→ [$env] Wiring variable references..."
 
-  # ── api: service-specific private-network + cross-service refs ──────────────
-  # Only vars that differ per-service or use ${{service.VAR}} references go here.
-  # Third-party credentials (RESEND_*, STRIPE_*, BIRD_*, VAPID_*) and NODE_ENV /
-  # LOG_LEVEL belong in environment Shared Variables (set via dashboard).
+  # ── api: all vars — private network, cross-service, and shared refs ──────────
   railway variables \
     --service api \
     --environment "$env" \
@@ -135,7 +132,22 @@ for env in "${ENVIRONMENTS[@]}"; do
     --set 'VALKEY_URL=${{valkey.VALKEY_URL}}' \
     --set 'BETTER_AUTH_URL=https://${{api.RAILWAY_PRIVATE_DOMAIN}}' \
     --set 'TRUSTED_ORIGINS=https://${{web.RAILWAY_PUBLIC_DOMAIN}}' \
-    --set 'BETTER_AUTH_SECRET=REPLACE_ME' \
+    --set 'BETTER_AUTH_SECRET=${{shared.BETTER_AUTH_SECRET}}' \
+    --set 'NODE_ENV=${{shared.NODE_ENV}}' \
+    --set 'LOG_LEVEL=${{shared.LOG_LEVEL}}' \
+    --set 'RESEND_API_KEY=${{shared.RESEND_API_KEY}}' \
+    --set 'RESEND_FROM_EMAIL=${{shared.RESEND_FROM_EMAIL}}' \
+    --set 'RESEND_WEBHOOK_SECRET=${{shared.RESEND_WEBHOOK_SECRET}}' \
+    --set 'STRIPE_SECRET_KEY=${{shared.STRIPE_SECRET_KEY}}' \
+    --set 'STRIPE_WEBHOOK_SECRET=${{shared.STRIPE_WEBHOOK_SECRET}}' \
+    --set 'STRIPE_CONNECT_CLIENT_ID=${{shared.STRIPE_CONNECT_CLIENT_ID}}' \
+    --set 'BIRD_ACCESS_KEY=${{shared.BIRD_ACCESS_KEY}}' \
+    --set 'BIRD_WORKSPACE_ID=${{shared.BIRD_WORKSPACE_ID}}' \
+    --set 'BIRD_SMS_CHANNEL_ID=${{shared.BIRD_SMS_CHANNEL_ID}}' \
+    --set 'BIRD_WEBHOOK_SECRET=${{shared.BIRD_WEBHOOK_SECRET}}' \
+    --set 'VAPID_PUBLIC_KEY=${{shared.VAPID_PUBLIC_KEY}}' \
+    --set 'VAPID_PRIVATE_KEY=${{shared.VAPID_PRIVATE_KEY}}' \
+    --set 'VAPID_SUBJECT=${{shared.VAPID_SUBJECT}}' \
     2>/dev/null && echo "    ✓ API service vars wired" \
     || echo "    ! Could not set API vars via CLI — see manual steps below"
 
