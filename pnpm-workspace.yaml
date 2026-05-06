@@ -60,7 +60,7 @@ catalog:
   tailwind-merge: ^3
   tailwindcss: ^4
   turbo: ^2.9.9
-  typescript: ^5.9.3
+  typescript: 5.9.3
   vite: ^6
   web-push: ^3.6.7
   zod: ^4

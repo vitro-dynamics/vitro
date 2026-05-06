@@ -31,14 +31,12 @@ RUN addgroup -S app && adduser -S app -G app
 COPY --from=builder --chown=app:app /repo/apps/api/.output ./
 
 # ── Migration tooling for Railway preDeployCommand ────────────────────────────
-# preDeployCommand runs before the server starts, inside this container.
-# We ship only what `prisma migrate deploy` needs: the CLI binary, the
-# schema, the migrations directory, and the config file.
-# The DATABASE_URL comes from Railway's runtime environment variables.
-COPY --from=builder --chown=app:app /repo/packages/db/prisma ./packages/db/prisma
-COPY --from=builder --chown=app:app /repo/packages/db/prisma.config.ts ./packages/db/prisma.config.ts
-COPY --from=builder --chown=app:app /repo/packages/db/package.json ./packages/db/package.json
-COPY --from=builder --chown=app:app /repo/packages/db/node_modules ./packages/db/node_modules
+# prisma migrate deploy needs the CLI, schema, migrations, and config.
+# We install prisma + dotenv via npm to get a flat node_modules that works
+# without pnpm's symlinked virtual store.
+COPY --from=builder /repo/packages/db/prisma ./packages/db/prisma
+COPY --from=builder /repo/packages/db/prisma.config.ts ./packages/db/prisma.config.ts
+RUN cd packages/db && npm init -y && npm install --save-exact prisma@7 dotenv@16
 
 USER app
 EXPOSE 8000

@@ -21,7 +21,7 @@ COPY --from=pruner /repo/out/full/ ./
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 
-RUN pnpm --filter @app/web build
+RUN pnpm --filter @app/web run build:docker
 
 FROM caddy:2-alpine AS runtime
 ENV PORT=8080

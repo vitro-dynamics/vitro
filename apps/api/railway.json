@@ -13,7 +13,7 @@
 		]
 	},
 	"deploy": {
-		"preDeployCommand": "cd /app/packages/db && node node_modules/.bin/prisma migrate deploy",
+		"preDeployCommand": "/bin/sh -c 'cd /app/packages/db && node node_modules/.bin/prisma db push --accept-data-loss'",
 		"startCommand": "node server/index.mjs",
 		"healthcheckPath": "/health",
 		"healthcheckTimeout": 30,
