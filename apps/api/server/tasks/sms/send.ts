@@ -15,11 +15,12 @@ export default defineTask({
 		name: "sms:send",
 		description: "Send an SMS via Bird (formerly MessageBird) Channels API",
 	},
-	async run({
-		payload,
-	}: {
-		payload: { to: string; body: string; type?: "transactional" | "marketing" };
-	}) {
+	async run(event) {
+		const payload = event.payload as {
+			to: string;
+			body: string;
+			type?: "transactional" | "marketing";
+		};
 		// 1. Hard opt-out check (authoritative by phone number)
 		const optedOut = await prisma.smsOptOut.findUnique({ where: { phoneNumber: payload.to } });
 		if (optedOut) {

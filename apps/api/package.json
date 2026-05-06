@@ -6,7 +6,7 @@
 		"dev": "portless",
 		"dev:app": "nitro dev",
 		"build": "nitro build",
-		"typecheck": "tsc --noEmit",
+		"typecheck": "nitro prepare && tsc --noEmit",
 		"lint": "biome lint src server"
 	},
 	"dependencies": {

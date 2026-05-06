@@ -121,7 +121,7 @@ catalogs:
       specifier: ^4
       version: 4.2.4
     typescript:
-      specifier: ^5
+      specifier: ^5.9.3
       version: 5.9.3
     vite:
       specifier: ^6
@@ -305,6 +305,12 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.2.4
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.14)
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -447,6 +453,12 @@ importers:
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.14)
 
   tooling/e2e:
     devDependencies:

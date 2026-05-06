@@ -1,4 +1,4 @@
 {
 	"extends": "@app/tsconfig/node.json",
-	"include": ["src/**/*", "server/**/*", "nitro.config.ts"]
+	"include": ["src/**/*", "server/**/*", "nitro.config.ts", ".nitro/types/nitro.d.ts"]
 }

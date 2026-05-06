@@ -13,8 +13,7 @@ RUN corepack enable
 WORKDIR /repo
 
 COPY --from=pruner /repo/out/json/ ./
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 COPY --from=pruner /repo/out/full/ ./
 
@@ -25,6 +24,7 @@ ENV VITE_API_URL=${VITE_API_URL}
 RUN pnpm --filter @app/web build
 
 FROM caddy:2-alpine AS runtime
+ENV PORT=8080
 COPY --from=builder /repo/apps/web/dist /srv
 COPY apps/web/Caddyfile /etc/caddy/Caddyfile
-EXPOSE 80
+EXPOSE 8080

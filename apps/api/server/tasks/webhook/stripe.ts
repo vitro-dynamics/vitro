@@ -11,14 +11,16 @@ export default defineTask({
 		name: "webhook:stripe",
 		description: "Process a persisted Stripe webhook event",
 	},
-	async run({ payload }: { payload: { eventId: string } }) {
-		const event = await prisma.webhookEvent.findUniqueOrThrow({
+	async run(taskEvent) {
+		const payload = taskEvent.payload as { eventId: string };
+		const record = await prisma.webhookEvent.findUniqueOrThrow({
 			where: { id: payload.eventId },
 		});
-		if (event.processedAt) return { result: "already-processed" };
+		if (record.processedAt) return { result: "already-processed" };
 
-		const stripeEvent = event.payload as Stripe.Event;
-		log.debug("Processing Stripe event", { type: stripeEvent.type, id: event.id });
+		// Prisma stores the event as JSON; roundtrip to satisfy TS boundary
+		const stripeEvent = JSON.parse(JSON.stringify(record.payload)) as Stripe.Event;
+		log.debug("Processing Stripe event", { type: stripeEvent.type, id: record.id });
 
 		switch (stripeEvent.type) {
 			case "invoice.payment_failed": {
@@ -41,7 +43,7 @@ export default defineTask({
 		}
 
 		await prisma.webhookEvent.update({
-			where: { id: event.id },
+			where: { id: record.id },
 			data: { processedAt: new Date() },
 		});
 

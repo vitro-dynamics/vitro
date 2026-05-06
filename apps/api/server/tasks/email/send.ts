@@ -15,11 +15,8 @@ export default defineTask({
 		name: "email:send",
 		description: "Send a transactional email via Resend (prod) or Mailpit (dev)",
 	},
-	async run({
-		payload,
-	}: {
-		payload: { to: string; subject: string; html: string; text?: string };
-	}) {
+	async run(event) {
+		const payload = event.payload as { to: string; subject: string; html: string; text?: string };
 		const from = process.env.RESEND_FROM_EMAIL ?? "dev@localhost";
 
 		if (resend) {

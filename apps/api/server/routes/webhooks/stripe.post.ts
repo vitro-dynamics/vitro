@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
 			id: stripeEvent.id,
 			source: "stripe",
 			type: stripeEvent.type,
-			payload: stripeEvent as Record<string, unknown>,
+			payload: JSON.parse(JSON.stringify(stripeEvent)),
 		},
 	});
 

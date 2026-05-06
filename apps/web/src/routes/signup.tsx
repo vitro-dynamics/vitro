@@ -37,7 +37,7 @@ function Signup() {
 				return;
 			}
 			// Email verification is required — send user to login with a message
-			await navigate({ to: "/login" });
+			await navigate({ to: "/login", search: { redirect: "/dashboard" } });
 		} finally {
 			setPending(false);
 		}
@@ -79,7 +79,11 @@ function Signup() {
 						</Button>
 						<p className="text-sm text-center text-muted-foreground">
 							Already have an account?{" "}
-							<Link to="/login" className="underline text-foreground">
+							<Link
+								to="/login"
+								search={{ redirect: "/dashboard" }}
+								className="underline text-foreground"
+							>
 								Log in
 							</Link>
 						</p>

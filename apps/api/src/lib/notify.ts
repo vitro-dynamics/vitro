@@ -33,7 +33,7 @@ export async function notify(opts: {
 			type: opts.type,
 			title: opts.title,
 			body: opts.body,
-			data: opts.data ?? {},
+			data: JSON.parse(JSON.stringify(opts.data ?? {})),
 		},
 	});
 

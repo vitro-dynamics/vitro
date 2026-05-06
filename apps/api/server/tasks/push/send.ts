@@ -27,7 +27,8 @@ export default defineTask({
 		name: "push:send",
 		description: "Fan out a web push notification to all of a user's browser subscriptions",
 	},
-	async run({ payload }: { payload: Payload }) {
+	async run(event) {
+		const payload = event.payload as Payload;
 		if (!process.env.VAPID_PUBLIC_KEY) {
 			log.debug("VAPID keys not configured — skipping push send", { userId: payload.userId });
 			return { result: "not-configured" };

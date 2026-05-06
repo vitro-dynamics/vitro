@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
 		stream.push({ data: JSON.stringify(e) });
 	});
 
-	const keepalive = setInterval(() => stream.push({ comment: "ka" }), 25_000);
+	const keepalive = setInterval(() => stream.push(""), 25_000);
 
 	stream.onClosed(() => {
 		unsub();

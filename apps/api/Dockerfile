@@ -13,8 +13,7 @@ RUN corepack enable
 WORKDIR /repo
 
 COPY --from=pruner /repo/out/json/ ./
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY --from=pruner /repo/out/full/ ./
 
@@ -24,7 +23,7 @@ RUN pnpm --filter @app/api build
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=8000
 
 RUN addgroup -S app && adduser -S app -G app
 
@@ -42,5 +41,5 @@ COPY --from=builder --chown=app:app /repo/packages/db/package.json ./packages/db
 COPY --from=builder --chown=app:app /repo/packages/db/node_modules ./packages/db/node_modules
 
 USER app
-EXPOSE 3000
+EXPOSE 8000
 CMD ["node", "server/index.mjs"]

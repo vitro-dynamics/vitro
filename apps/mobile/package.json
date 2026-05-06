@@ -27,6 +27,8 @@
 		"@app/tsconfig": "workspace:*",
 		"@babel/core": "^7.25.2",
 		"@tailwindcss/postcss": "^4",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
 		"typescript": "^5"
 	}
 }
