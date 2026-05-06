@@ -10,7 +10,7 @@
 		"migrate:deploy": "prisma migrate deploy",
 		"studio": "prisma studio",
 		"db:generate": "prisma generate",
-		"postinstall": "prisma generate"
+		"postinstall": "prisma generate || true"
 	},
 	"dependencies": {
 		"@prisma/adapter-pg": "catalog:",

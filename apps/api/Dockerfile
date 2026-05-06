@@ -13,7 +13,7 @@ RUN corepack enable
 WORKDIR /repo
 
 COPY --from=pruner /repo/out/json/ ./
-RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm install --frozen-lockfile
 
 COPY --from=pruner /repo/out/full/ ./
 
